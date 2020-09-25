@@ -42,6 +42,6 @@ A single RTX 2080Ti was used.
 | resnet110 | 6.43 [1] | xxxx |
 | resnet1202 | 7.93 [1] | xxxx |
 
-# References
+## References
 
 [1] Kaiming He, Xiangyu Zhang, Shaoqing Ren, Jian Sun. Deep Residual Learning for Image Recognition. In CVPR, 2016.
