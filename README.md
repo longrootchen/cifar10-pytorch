@@ -47,6 +47,8 @@ Note that, in the paper by He et al.[1], the training set that consists of 50k t
 | DenseNet-100-BC, k=12 | 4.51 [3] |  |
 | DenseNet-250-BC, k=24 | 3.62 [3] |  |
 | DenseNet-190-BC, k=40 | 3.46 [3] |  |
+| SE-ResNet-101 | 5.21 [4] |  |
+| SE-ResNet-164 | 4.39 [4] |  |
 
 ## References
 
@@ -55,3 +57,5 @@ Note that, in the paper by He et al.[1], the training set that consists of 50k t
 [2] Saining Xie, Ross Girshick, Piotr Dollár, Zhouwen Tu, Kaiming He. Aggregated Residual Transformations for Deep Neural Networks. In CVPR, 2017.
 
 [3] Gao Huang, Zhuang Liu, Laurens van der Maaten, Kilian Q. Weinberger. Densely Connected Convolutional Networks. In CVPR, 2017.
+
+[4] Jie Hu, Li Shen, Samuel Albanie, Gang Sun, Enhua Wu. Squeeze-and-Excitation Networks. In CVPR, 2018.
