@@ -1,12 +1,12 @@
 # Re-implementation of ConvNets on CIFAR-10 with PyTorch
 
+Contact email: imdchan@yahoo.com
+
 ## Introduction
 
 Here are some re-implementations of Convolutional Networks on CIFAR-10 dataset.
 
 Note that, in the paper by He et al.[1], the training set that consists of 50k training images was divided into 45k/5k train/val split. So I first made stratefied 10-fold split. The implement details are as in [this repository](https://github.com/longrootchen/stratefied-10-fold-cifar10).
-
-Contact email: imdchan@yahoo.com
 
 ## Requirements
 
@@ -41,9 +41,17 @@ Contact email: imdchan@yahoo.com
 | ResNet-1202 | 7.93 [1] |  |
 | ResNeXt-29, 8x64d | 3.65 [2] |  |
 | ResNeXt-29, 16x64d | 3.58 [2] |  |
+| DenseNet-40, k=12 | 5.24 [3] |  |
+| DenseNet-100, k=12 | 4.10 [3] |  |
+| DenseNet-100, k=24 | 3.74 [3] |  |
+| DenseNet-100-BC, k=12 | 4.51 [3] |  |
+| DenseNet-250-BC, k=24 | 3.62 [3] |  |
+| DenseNet-190-BC, k=40 | 3.46 [3] |  |
 
 ## References
 
 [1] Kaiming He, Xiangyu Zhang, Shaoqing Ren, Jian Sun. Deep Residual Learning for Image Recognition. In CVPR, 2016.
 
 [2] Saining Xie, Ross Girshick, Piotr Dollár, Zhouwen Tu, Kaiming He. Aggregated Residual Transformations for Deep Neural Networks. In CVPR, 2017.
+
+[3] Gao Huang, Zhuang Liu, Laurens van der Maaten, Kilian Q. Weinberger. Densely Connected Convolutional Networks. In CVPR, 2017.
