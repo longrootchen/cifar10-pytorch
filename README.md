@@ -10,8 +10,6 @@ Contact email: imdchan@yahoo.com
 
 ## Requirements
 
-A single RTX 2080Ti was used.
-
 - Python 3.7+
 
 - PyTorch 1.0+
@@ -35,13 +33,17 @@ A single RTX 2080Ti was used.
 
 | Error Rate (%)  | original paper | re-implementation |
 | ----- | ----- | ----- |
-| resnet20 | 8.75 [1] | 8.58 |
-| resnet32 | 7.51 [1] | xxxx |
-| resnet44 | 7.17 [1] | xxxx |
-| resnet56 | 6.97 [1] | xxxx |
-| resnet110 | 6.43 [1] | xxxx |
-| resnet1202 | 7.93 [1] | xxxx |
+| ResNet-20 | 8.75 [1] | 8.58 |
+| ResNet-32 | 7.51 [1] | xxxx |
+| ResNet-44 | 7.17 [1] | xxxx |
+| ResNet-56 | 6.97 [1] | xxxx |
+| ResNet-110 | 6.43 [1] | xxxx |
+| ResNet-1202 | 7.93 [1] | xxxx |
+| ResNeXt-29, 8x64d | 3.65 [2] | xxxx |
+| ResNeXt-29, 16x64d | 3.58 [2] | xxxx |
 
 ## References
 
 [1] Kaiming He, Xiangyu Zhang, Shaoqing Ren, Jian Sun. Deep Residual Learning for Image Recognition. In CVPR, 2016.
+
+[2] Saining Xie, Ross Girshick, Piotr Dollár, Zhouwen Tu, Kaiming He. Aggregated Residual Transformations for Deep Neural Networks. In CVPR, 2017.
