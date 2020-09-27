@@ -33,11 +33,11 @@ Note that, in the paper by He et al.[1], the training set that consists of 50k t
 
 | Error Rate (%)  | original paper | re-implementation |
 | ----- | ----- | ----- |
-| ResNet-20 | 8.75 [1] | 8.81 |
-| ResNet-32 | 7.51 [1] | 7.76 |
-| ResNet-44 | 7.17 [1] | 7.31 |
-| ResNet-56 | 6.97 [1] | 6.97 |
-| ResNet-110 | 6.43 [1] | 6.48 |
+| ResNet-20 | 8.75 [1] | 8.24 |
+| ResNet-32 | 7.51 [1] |  |
+| ResNet-44 | 7.17 [1] |  |
+| ResNet-56 | 6.97 [1] |  |
+| ResNet-110 | 6.43 [1] |  |
 | ResNet-1202 | 7.93 [1] |  |
 | ResNeXt-29, 8x64d | 3.65 [2] |  |
 | ResNeXt-29, 16x64d | 3.58 [2] |  |
