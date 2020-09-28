@@ -10,6 +10,8 @@ Note that, in the paper by He et al.[1], the training set that consists of 50k t
 
 ## Requirements
 
+- A single TITAN RTX (24G memory) is used.
+
 - Python 3.7+
 
 - PyTorch 1.0+
