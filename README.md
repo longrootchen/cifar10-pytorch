@@ -36,7 +36,7 @@ Note that, in the paper by He et al.[1], the training set that consists of 50k t
 | ResNet-20 | 8.75 [1] | 8.24 |
 | ResNet-32 | 7.51 [1] | 7.38 |
 | ResNet-44 | 7.17 [1] |  |
-| ResNet-56 | 6.97 [1] |  |
+| ResNet-56 | 6.97 [1] | 7.01 |
 | ResNet-110 | 6.43 [1] |  |
 | ResNet-1202 | 7.93 [1] |  |
 | ResNeXt-29, 8x64d | 3.65 [2] |  |
