@@ -28,7 +28,7 @@ Note that, in the paper by He et al.[1], the training set that consists of 50k t
         
 3. Evaluate a model, taking resnet20 as an example
 
-        python -u eval.py --arch resnet20 --ckpt-path ./experiments/resnet20/checkpoints/last_checkpoint.pth --gpu cuda:0 --df-path ./datasets/test.csv --img-dir ./datasets/test
+        python -u eval.py --work-dir ./experiments/resnet20 --ckpt-name last_checkpoint.pth --df-path ./datasets/test.csv --img-dir ./datasets/test
         
         
 ## Results
