@@ -1,6 +1,9 @@
+import os
+import yaml
 import warnings
 from argparse import ArgumentParser
 
+from easydict import EasyDict
 from tqdm import tqdm
 import pandas as pd
 import torch
@@ -41,31 +44,38 @@ def eval(args, device, model, test_loader, vis_conf_mat=False, save_conf_mat=Fal
 
 if __name__ == '__main__':
     # for evaluating resnet20 on CIFAR-10 test set:
-    # $ python -u eval.py --arch resnet20
-    #   --ckpt-path ./experiments/resnet20/checkpoints/last_checkpoint.pth --gpu cuda:1
+    # $ python -u eval.py --work-dir ./experiments/resnet20 --ckpt-name last_checkpoint.pth
+    #   --ckpt-path ./experiments/resnet20/checkpoints/last_checkpoint.pth
     #   --df-path ./datasets/test.csv --img-dir ./datasets/test
     parser = ArgumentParser(description='Train ConvNets on CIFAR-100 in PyTorch')
-    parser.add_argument('--arch', required=True, type=str)
-    parser.add_argument('--num-classes', type=int, default=10)
-    parser.add_argument('--ckpt-path', required=True, type=str)
-    parser.add_argument('--gpu', required=True, type=str)
+    parser.add_argument('--work-dir', required=True, type=str)
+    parser.add_argument('--ckpt-name', required=True, type=str)
     parser.add_argument('--df-path', required=True, type=str)
     parser.add_argument('--img-dir', required=True, type=str)
     args = parser.parse_args()
+    
+    # get experiment setting
+    with open(os.path.join(args.work_dir, 'config.yaml')) as f:
+        cfgs = yaml.load(f, Loader=yaml.FullLoader)
+    cfgs = EasyDict(cfgs)
 
     # hardware
-    device = torch.device(args.gpu if torch.cuda.is_available() else 'cpu')
+    device = torch.device(cfgs.gpu if torch.cuda.is_available() else 'cpu')
 
     # get model
-    model = get_model(args)
-    ckpt = torch.load(args.ckpt_path)
-    model.load_state_dict(ckpt['model'])
+    model = get_model(cfgs)
+    ckpt_path = os.path.join(args.work_dir, 'checkpoints', args.ckpt_name)
+    ckpt = torch.load(ckpt_path)
+    if isinstance(ckpt, dict):
+        model.load_state_dict(ckpt['model'])
+    else:
+        model.load_state_dict(ckpt)
     model.to(device)
 
     # get data
     df = pd.read_csv(args.df_path)
     test_set = CIFAR10Dataset(df, args.img_dir, phase='val')
-    test_loader = DataLoader(test_set, batch_size=128, shuffle=False, num_workers=4)
+    test_loader = DataLoader(test_set, batch_size=cfgs.batch_size, shuffle=False, num_workers=cfgs.workers)
 
     # ========== eval in test set ==========
     err = eval(args, device, model, test_loader, vis_conf_mat=False, save_conf_mat=False)
