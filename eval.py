@@ -52,8 +52,8 @@ if __name__ == '__main__':
     parser.add_argument('--df-path', required=True, type=str)
     parser.add_argument('--img-dir', required=True, type=str)
     args = parser.parse_args()
-    
-    # get experiment setting
+
+    # get experiment settings
     with open(os.path.join(args.work_dir, 'config.yaml')) as f:
         cfgs = yaml.load(f, Loader=yaml.FullLoader)
     cfgs = EasyDict(cfgs)
@@ -76,6 +76,6 @@ if __name__ == '__main__':
     test_set = CIFAR10Dataset(df, args.img_dir, phase='val')
     test_loader = DataLoader(test_set, batch_size=cfgs.batch_size, shuffle=False, num_workers=cfgs.workers)
 
-    # ========== eval in test set ==========
+    # eval in test set
     err = eval(device, model, test_loader, vis_conf_mat=False, save_conf_mat=False)
     print('Error Rate:', err)
