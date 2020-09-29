@@ -15,7 +15,6 @@ verbose: True
 
 # training
 epochs: 184
-resume: './checkpoints/last_checkpoint.pth'
 batch_size: 128
 
 # SGD optimizer. Note: nesterov default to False
