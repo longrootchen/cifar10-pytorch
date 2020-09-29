@@ -16,8 +16,8 @@ from utils import Evaluator
 warnings.filterwarnings('ignore')
 
 
-def eval(args, device, model, test_loader, vis_conf_mat=False, save_conf_mat=False):
-    evaluator = Evaluator(args.num_classes)
+def eval(device, model, test_loader, vis_conf_mat=False, save_conf_mat=False):
+    evaluator = Evaluator(10)
 
     model.eval()
     with tqdm(test_loader) as pbar:
@@ -45,7 +45,6 @@ def eval(args, device, model, test_loader, vis_conf_mat=False, save_conf_mat=Fal
 if __name__ == '__main__':
     # for evaluating resnet20 on CIFAR-10 test set:
     # $ python -u eval.py --work-dir ./experiments/resnet20 --ckpt-name last_checkpoint.pth
-    #   --ckpt-path ./experiments/resnet20/checkpoints/last_checkpoint.pth
     #   --df-path ./datasets/test.csv --img-dir ./datasets/test
     parser = ArgumentParser(description='Train ConvNets on CIFAR-100 in PyTorch')
     parser.add_argument('--work-dir', required=True, type=str)
@@ -78,5 +77,5 @@ if __name__ == '__main__':
     test_loader = DataLoader(test_set, batch_size=cfgs.batch_size, shuffle=False, num_workers=cfgs.workers)
 
     # ========== eval in test set ==========
-    err = eval(args, device, model, test_loader, vis_conf_mat=False, save_conf_mat=False)
+    err = eval(device, model, test_loader, vis_conf_mat=False, save_conf_mat=False)
     print('Error Rate:', err)
