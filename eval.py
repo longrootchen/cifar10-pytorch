@@ -46,7 +46,7 @@ if __name__ == '__main__':
     # for evaluating resnet20 on CIFAR-10 test set:
     # $ python -u eval.py --work-dir ./experiments/resnet20 --ckpt-name last_checkpoint.pth
     #   --df-path ./datasets/test.csv --img-dir ./datasets/test
-    parser = ArgumentParser(description='Train ConvNets on CIFAR-100 in PyTorch')
+    parser = ArgumentParser(description='Train ConvNets on CIFAR-10 in PyTorch')
     parser.add_argument('--work-dir', required=True, type=str)
     parser.add_argument('--ckpt-name', required=True, type=str)
     parser.add_argument('--df-path', required=True, type=str)
