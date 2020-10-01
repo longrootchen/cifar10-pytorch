@@ -43,9 +43,6 @@ Note that, in the paper by He et al.[1], the training set that consists of 50k t
 | ResNet-1202 | 7.93 [1] |  |
 | ResNeXt-29, 8x64d | 3.65 [2] |  |
 | ResNeXt-29, 16x64d | 3.58 [2] |  |
-| DenseNet-40, k=12 | 5.24 [3] |  |
-| DenseNet-100, k=12 | 4.10 [3] |  |
-| DenseNet-100, k=24 | 3.74 [3] |  |
 | DenseNet-100-BC, k=12 | 4.51 [3] |  |
 | DenseNet-250-BC, k=24 | 3.62 [3] |  |
 | DenseNet-190-BC, k=40 | 3.46 [3] |  |
