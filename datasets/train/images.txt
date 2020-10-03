@@ -1,1 +1,1 @@
-Extract .png images here from the downloaded files.
+Extract 50k .png images here from the downloaded files.
