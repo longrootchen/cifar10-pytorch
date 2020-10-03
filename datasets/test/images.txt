@@ -1,1 +1,1 @@
-Extract .png images here from the downloaded files.
+Extract 10k .png images here from the downloaded 'test_batch' file.
