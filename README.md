@@ -41,8 +41,8 @@ Note that the training set that consists of 50k training images was divided into
 | ResNet-56 | 6.97 [1] | 7.01 |
 | ResNet-110 | 6.43 [1] | 6.63 |
 | ResNet-1202 | 7.93 [1] |  |
-| ResNeXt-29, 8x64d | 3.65 [2] | 4.33 |
-| ResNeXt-29, 16x64d | 3.58 [2] | 4.19 |
+| ResNeXt-29, 8x64d | 3.65 [2] | 4.29 |
+| ResNeXt-29, 16x64d | 3.58 [2] | 4.17 |
 | DenseNet-100-BC, k=12 | 4.51 [3] |  |
 | DenseNet-250-BC, k=24 | 3.62 [3] |  |
 | DenseNet-190-BC, k=40 | 3.46 [3] |  |
