@@ -22,197 +22,170 @@ from utils import AverageMeter, Evaluator
 warnings.filterwarnings('ignore')
 
 
-class Trainer:
+def train(config, device, train_loader, epoch):
+    """
+    train an epoch
 
-    def __init__(self, cfgs, model):
-        """
-        Args:
-            cfgs (class): a class object whose attributes are the hyper-parameters for training
-            model (torch.nn.Module): the model to be trained
-        """
-        self.cfgs = cfgs
-        self.model = model
-        self.start_epoch = 1
-        self.best_err = 1.1
+    Args:
+        config (EasyDict): configurations for training
+        device (torch.device): the GPU or CPU used for training
+        train_loader (torch.utils.data.DataLoader): a DataLoader instance object for training set
+        epoch (int): current epoch
+    Returns:
+        err (float): error rate
+    """
+    losses = AverageMeter()
+    evaluator = Evaluator(config.num_classes)
 
-        self.device = torch.device(cfgs.gpu if torch.cuda.is_available() else 'cpu')
-        self.model.to(self.device)
+    model.train()
+    with tqdm(train_loader) as pbar:
+        pbar.set_description('Train Epoch {}'.format(epoch))
 
-        self.criterion = CrossEntropyLoss().to(self.device)
-        self.optimizer = SGD(self.model.parameters(), lr=cfgs.lr, weight_decay=cfgs.weight_decay,
-                             momentum=cfgs.momentum, nesterov=cfgs.nesterov)
-        self.scheduler = MultiStepLR(self.optimizer, gamma=cfgs.gamma, milestones=cfgs.milestones)
+        for step, (input_, target) in enumerate(train_loader):
+            # move data to device
+            input_ = torch.tensor(input_, device=device, dtype=torch.float32)
+            target = torch.tensor(target, device=device, dtype=torch.long)
 
-        # optionally resume from a checkpoint
-        if cfgs.resume:
-            if os.path.isfile(cfgs.resume):
-                print("=> loading checkpoint '{}'".format(cfgs.resume))
-                checkpoint = torch.load(cfgs.resume, map_location=self.device)
-                self.load(cfgs.resume)
-                print("=> loaded checkpoint '{}' (epoch {})".format(cfgs.resume, checkpoint['epoch']))
-            else:
-                print("=> no checkpoint found at '{}'".format(cfgs.resume))
+            # forward and compute loss
+            output = model(input_)
+            loss = criterion(output, target)
 
-        # create directory to checkpoints if necessary
-        if not os.path.exists(cfgs.save_dir):
-            os.makedirs(cfgs.save_dir)
-        # create directory to log file and event files if necessary
-        if not os.path.exists(cfgs.log_dir):
-            os.makedirs(cfgs.log_dir)
-        self.writer = SummaryWriter(log_dir=cfgs.log_dir)
+            # backward and update params
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
 
-        self.log('Trainer prepared in device: {}'.format(self.device))
+            # record loss and show it in the pbar
+            losses.update(loss.item(), input_.size(0))
+            postfix = OrderedDict({'batch_loss': f'{losses.val:6.4f}', 'running_loss': f'{losses.avg:6.4f}'})
+            pbar.set_postfix(ordered_dict=postfix)
+            pbar.update()
 
-    def fit(self, train_loader, valid_loader):
-        """
-        train and evaluate the model
+            # visualization with TensorBoard
+            total_iter = (epoch - 1) * len(train_loader) + step + 1
+            writer.add_scalar('training_loss', losses.val, total_iter)
 
-        Args:
-            train_loader (torch.utils.data.DataLoader): DataLoader instance object for training set
-            valid_loader (torch.utils.data.DataLoader): DataLoader instance object for validation set
-        """
-        for epoch in range(self.start_epoch, self.cfgs.epochs + 1):
-            if self.cfgs.verbose:
-                lr = self.optimizer.param_groups[0]['lr']
-                timestamp = datetime.datetime.now().isoformat()
-                self.log('{}\tEpoch: {}\tLR: {}'.format(timestamp, epoch, lr))
-
-            # train an epoch
-            err = self.train(epoch, train_loader)
-
-            self.save(epoch, f'{self.cfgs.save_dir}/last_checkpoint.pth')
-            self.log(f'[RESULT]: Train Epoch: {epoch}\t Error Rate: {err:6.4f}')
-            self.writer.add_scalars('error', {'train': err}, epoch)
-
-            # validate
-            err = self.validate(epoch, valid_loader)
-
-            if err < self.best_err:
-                self.best_err = err
-                self.save(epoch, f'{self.cfgs.save_dir}/best_checkpoint_{str(epoch).zfill(3)}epoch.pth')
-            self.log(f'[RESULT]: Valid Epoch: {epoch}\t Error Rate: {err:6.4f}')
-            self.writer.add_scalars('error', {'valid': err}, epoch)
-
-            self.scheduler.step()
-
-    def train(self, epoch, train_loader):
-        """
-        train an epoch
-
-        Args:
-            epoch (int): current epoch
-            train_loader (torch.utils.data.DataLoader): a DataLoader instance object for training set
-        Returns:
-            err (float): error rate
-        """
-        losses = AverageMeter()
-        evaluator = Evaluator(self.cfgs.num_classes)
-
-        self.model.train()
-        with tqdm(train_loader) as pbar:
-            pbar.set_description('Train Epoch {}'.format(epoch))
-
-            for step, (input_, target) in enumerate(train_loader):
-                # move data to device
-                input_ = torch.tensor(input_, device=self.device, dtype=torch.float32)
-                target = torch.tensor(target, device=self.device, dtype=torch.long)
-
-                # forward and compute loss
-                output = self.model(input_)
-                loss = self.criterion(output, target)
-
-                # backward and update params
-                self.optimizer.zero_grad()
-                loss.backward()
-                self.optimizer.step()
-
-                # record loss and show it in the pbar
-                losses.update(loss.item(), input_.size(0))
-                postfix = OrderedDict({'batch_loss': f'{losses.val:6.4f}', 'running_loss': f'{losses.avg:6.4f}'})
-                pbar.set_postfix(ordered_dict=postfix)
-                pbar.update()
-
-                # visualization with TensorBoard
-                total_iter = (epoch - 1) * len(train_loader) + step + 1
-                self.writer.add_scalar('training_loss', losses.val, total_iter)
-
-                # update confusion matrix
-                true = target.cpu().numpy()
-                pred = output.max(dim=1)[1].cpu().numpy()
-                evaluator.update_matrix(true, pred)
+            # update confusion matrix
+            true = target.cpu().numpy()
+            pred = output.max(dim=1)[1].cpu().numpy()
+            evaluator.update_matrix(true, pred)
 
         return evaluator.error()
 
-    def validate(self, epoch, valid_loader):
-        """
-        validate the model
 
-        Args:
-            epoch (int): current epoch
-            valid_loader (torch.utils.data.DataLoader): a DataLoader instance object for validation set
-        Returns:
-            err: (float) error rate
-        """
-        losses = AverageMeter()
-        evaluator = Evaluator(self.cfgs.num_classes)
+def validate(config, device, val_loader, epoch):
+    """
+    validate the model
 
-        self.model.eval()
-        with tqdm(valid_loader) as pbar:
-            pbar.set_description('Valid Epoch {}'.format(epoch))
+    Args:
+        config (EasyDict): configurations for training
+        device (torch.device): the GPU or CPU used for training
+        val_loader (torch.utils.data.DataLoader): a DataLoader instance object for validation set
+        epoch (int): current epoch
+    Returns:
+        err: (float) error rate
+    """
+    losses = AverageMeter()
+    evaluator = Evaluator(config.num_classes)
 
-            for i, (input_, target) in enumerate(valid_loader):
-                # move data to GPU
-                input_ = torch.tensor(input_, device=self.device, dtype=torch.float32)
-                target = torch.tensor(target, device=self.device, dtype=torch.long)
+    model.eval()
+    with tqdm(val_loader) as pbar:
+        pbar.set_description('Valid Epoch {}'.format(epoch))
 
-                with torch.no_grad():
-                    # compute output and loss
-                    output = self.model(input_)
-                    loss = self.criterion(output, target)
+        for i, (input_, target) in enumerate(val_loader):
+            # move data to GPU
+            input_ = torch.tensor(input_, device=device, dtype=torch.float32)
+            target = torch.tensor(target, device=device, dtype=torch.long)
 
-                # record loss and show it in the pbar
-                losses.update(loss.item(), input_.size(0))
-                postfix = OrderedDict({'batch_loss': f'{losses.val:6.4f}', 'running_loss': f'{losses.avg:6.4f}'})
-                pbar.set_postfix(ordered_dict=postfix)
-                pbar.update()
+            with torch.no_grad():
+                # compute output and loss
+                output = model(input_)
+                loss = criterion(output, target)
 
-                # update confusion matrix
-                true = target.cpu().numpy()
-                pred = output.max(dim=1)[1].cpu().numpy()
-                evaluator.update_matrix(true, pred)
+            # record loss and show it in the pbar
+            losses.update(loss.item(), input_.size(0))
+            postfix = OrderedDict({'batch_loss': f'{losses.val:6.4f}', 'running_loss': f'{losses.avg:6.4f}'})
+            pbar.set_postfix(ordered_dict=postfix)
+            pbar.update()
 
-        return evaluator.error()
+            # update confusion matrix
+            true = target.cpu().numpy()
+            pred = output.max(dim=1)[1].cpu().numpy()
+            evaluator.update_matrix(true, pred)
 
-    def save(self, epoch, path):
-        self.model.eval()
-        torch.save({
-            'model': self.model.state_dict(),
-            'optimizer': self.optimizer.state_dict(),
-            'scheduler': self.scheduler.state_dict(),
-            'best_err': self.best_err,
-            'epoch': epoch
-        }, path)
+    return evaluator.error()
 
-    def load(self, path):
-        checkpoint = torch.load(path, map_location=self.device)
 
-        # whether the checkpoint contains other training info
-        if isinstance(checkpoint, dict):
-            self.model.load_state_dict(checkpoint['model'])
-            self.optimizer.load_state_dict(checkpoint['optimizer'])
-            self.scheduler.load_state_dict(checkpoint['scheduler'])
-            self.best_err = checkpoint['best_err']
-            self.start_epoch = checkpoint['epoch'] + 1
-        else:
-            self.model.load_state_dict(checkpoint)
+def save(err, epoch, path):
+    model.eval()
+    torch.save({
+        'model': model.state_dict(),
+        'optimizer': optimizer.state_dict(),
+        'scheduler': scheduler.state_dict(),
+        'err': err,
+        'epoch': epoch
+    }, path)
 
-    def log(self, msg):
-        if self.cfgs.verbose:
-            print(msg)
 
-        log_path = os.path.join(self.cfgs.log_dir, 'log.txt')
-        with open(log_path, 'a+') as logger:
-            logger.write(f'{msg}\n')
+def load(path):
+    checkpoint = torch.load(path)
+
+    # whether the checkpoint contains other training info
+    if isinstance(checkpoint, dict):
+        model.load_state_dict(checkpoint['model'])
+        optimizer.load_state_dict(checkpoint['optimizer'])
+        scheduler.load_state_dict(checkpoint['scheduler'])
+        err = checkpoint['err']
+        epoch = checkpoint['epoch'] + 1
+    else:
+        model.load_state_dict(checkpoint)
+
+    return err, epoch
+
+
+def log(config, msg):
+    if config.verbose:
+        print(msg)
+
+    log_path = os.path.join(config.log_dir, 'log.txt')
+    with open(log_path, 'a+') as logger:
+        logger.write(f'{msg}\n')
+
+
+def fit(config, device, train_loader, val_loader, num_epochs, start_epoch=1, best_err=1.1):
+    """
+    train and evaluate the model
+
+    Args:
+        config (EasyDict): configurations for training
+        device (torch.device): the GPU or CPU used for training
+        train_loader (torch.utils.data.DataLoader): DataLoader instance object for training set
+        val_loader (torch.utils.data.DataLoader): DataLoader instance object for validation set
+        num_epochs (int): number of epochs for training
+        start_epoch (int): start training from some epoch
+        best_err (float): current best error rate
+    """
+    for epoch in range(start_epoch, num_epochs + 1):
+        if config.verbose:
+            lr = optimizer.param_groups[0]['lr']
+            timestamp = datetime.datetime.now().isoformat()
+            log(config, '{}\tEpoch: {}\tLR: {}'.format(timestamp, epoch, lr))
+
+        # train an epoch and save the checkpoint and visualize metrics using TensorBoard
+        err = train(config, device, train_loader, epoch)
+        save(err, epoch, f'{config.save_dir}/last_checkpoint.pth')
+        log(config, f'[RESULT]: Train Epoch: {epoch}\t Error Rate: {err:6.4f}')
+        writer.add_scalars('error', {'train': err}, epoch)
+
+        # validate the trained model and save the checkpoint if it is the best one
+        err = validate(config, device, val_loader, epoch)
+        if err < best_err:
+            best_err = err
+            save(err, epoch, f'{config.save_dir}/best_checkpoint_{str(epoch).zfill(3)}epoch.pth')
+        log(config, f'[RESULT]: Valid Epoch: {epoch}\t Error Rate: {err:6.4f}')
+        writer.add_scalars('error', {'valid': err}, epoch)
+
+        scheduler.step()
 
 
 if __name__ == '__main__':
@@ -226,28 +199,57 @@ if __name__ == '__main__':
 
     # get experiment settings
     with open(os.path.join(args.work_dir, 'config.yaml')) as f:
-        cfgs = yaml.load(f, Loader=yaml.FullLoader)
-    cfgs = EasyDict(cfgs)
+        config = yaml.load(f, Loader=yaml.FullLoader)
+    config = EasyDict(config)
 
     # set paths
-    cfgs.save_dir = os.path.join(args.work_dir, cfgs.save_dir)
-    cfgs.log_dir = os.path.join(args.work_dir, cfgs.log_dir)
-    cfgs.resume = args.resume
+    config.save_dir = os.path.join(args.work_dir, config.save_dir)
+    config.log_dir = os.path.join(args.work_dir, config.log_dir)
+    config.resume = args.resume
+
+    # set device
+    device = torch.device(config.gpu if torch.cuda.is_available() else 'cpu')
 
     # get model
-    model = get_model(cfgs)
+    model = get_model(config)
+    model.to(device)
 
     # get data
-    df = pd.read_csv(cfgs.df_path)
+    df = pd.read_csv(config.df_path)
     train_df = df[df['fold'] != 1]
-    valid_df = df[df['fold'] == 1]
+    val_df = df[df['fold'] == 1]
+    train_set = CIFAR10Dataset(train_df, config.img_dir, phase='train')
+    val_set = CIFAR10Dataset(val_df, config.img_dir, phase='val')
+    train_loader = DataLoader(train_set, batch_size=config.batch_size, shuffle=True, num_workers=config.workers)
+    val_loader = DataLoader(val_set, batch_size=config.batch_size, shuffle=False, num_workers=config.workers)
 
-    train_set = CIFAR10Dataset(train_df, cfgs.img_dir, phase='train')
-    valid_set = CIFAR10Dataset(valid_df, cfgs.img_dir, phase='val')
+    # get training stuff
+    criterion = CrossEntropyLoss().to(device)
+    optimizer = SGD(model.parameters(), lr=config.lr, weight_decay=config.weight_decay,
+                    momentum=config.momentum, nesterov=config.nesterov)
+    scheduler = MultiStepLR(optimizer, gamma=config.gamma, milestones=config.milestones)
+    start_epoch = 1
+    best_err = 1.1
 
-    train_loader = DataLoader(train_set, batch_size=cfgs.batch_size, shuffle=True, num_workers=cfgs.workers)
-    valid_loader = DataLoader(valid_set, batch_size=cfgs.batch_size, shuffle=False, num_workers=cfgs.workers)
+    # optionally resume from a checkpoint
+    if config.resume:
+        if os.path.isfile(config.resume):
+            print("=> loading checkpoint '{}'".format(config.resume))
+            checkpoint = torch.load(config.resume, map_location=device)
+            best_err, start_epoch = load(config.resume)
+            print("=> loaded checkpoint '{}' (epoch {})".format(config.resume, checkpoint['epoch']))
+        else:
+            print("=> no checkpoint found at '{}'".format(config.resume))
+
+    # create directory to checkpoints if necessary
+    if not os.path.exists(config.save_dir):
+        os.makedirs(config.save_dir)
+    # create directory to log file and event files if necessary
+    if not os.path.exists(config.log_dir):
+        os.makedirs(config.log_dir)
+
+    writer = SummaryWriter(log_dir=config.log_dir)
+    log(config, 'Trainer prepared in device: {}'.format(device))
 
     # train
-    trainer = Trainer(cfgs, model)
-    trainer.fit(train_loader, valid_loader)
+    fit(config, device, train_loader, val_loader, config.epochs, start_epoch, best_err)
