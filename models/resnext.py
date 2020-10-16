@@ -49,10 +49,10 @@ class Bottleneck(nn.Module):
         return out
 
 
-class ResNeXt_Cifar(nn.Module):
+class ResNeXt(nn.Module):
 
     def __init__(self, block, layers, cardinality, baseWidth, num_classes=10):
-        super(ResNeXt_Cifar, self).__init__()
+        super(ResNeXt, self).__init__()
         self.inplanes = 64
         self.cardinality = cardinality
         self.baseWidth = baseWidth
@@ -106,8 +106,8 @@ class ResNeXt_Cifar(nn.Module):
 
 
 def resnext29_8x64d(num_classes):
-    return ResNeXt_Cifar(Bottleneck, [3, 3, 3], 8, 64, num_classes)
+    return ResNeXt(Bottleneck, [3, 3, 3], 8, 64, num_classes)
 
 
 def resnext29_16x64d(num_classes):
-    return ResNeXt_Cifar(Bottleneck, [3, 3, 3], 16, 64, num_classes)
+    return ResNeXt(Bottleneck, [3, 3, 3], 16, 64, num_classes)
