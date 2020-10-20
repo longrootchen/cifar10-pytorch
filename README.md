@@ -46,7 +46,7 @@ Note that the training set that consists of 50k training images was divided into
 | DenseNet-100-BC, k=12 | 4.51 [3] |  |
 | DenseNet-250-BC, k=24 | 3.62 [3] |  |
 | DenseNet-190-BC, k=40 | 3.46 [3] |  |
-| SE-ResNet-101 | 5.21 [4] |  |
+| SE-ResNet-110 | 5.21 [4] |  |
 | SE-ResNet-164 | 4.39 [4] |  |
 
 ## References
