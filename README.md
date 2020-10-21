@@ -40,7 +40,7 @@ Note that the training set that consists of 50k training images was divided into
 | ResNet-44 | 7.17 [1] | 7.07 |
 | ResNet-56 | 6.97 [1] | 7.01 |
 | ResNet-110 | 6.43 [1] | 6.63 |
-| ResNet-1202 | 7.93 [1] |  |
+| ResNet-1202 | 7.93 [1] | non-convergence |
 | ResNeXt-29, 8x64d | 3.65 [2] | 4.43 |
 | ResNeXt-29, 16x64d | 3.58 [2] | 3.96 |
 | DenseNet-100-BC, k=12 | 4.51 [3] |  |
